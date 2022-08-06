@@ -1,106 +1,107 @@
-const cells = document.querySelectorAll("[data-cell]");
-const board = document.querySelector("[data-board]");
-const messageContainer = document.querySelector("[data-messageContainer]");
-const message = document.querySelector("[data-message]");
-const restartButton = document.querySelector("[data-restartButton]");
-let currentPlayer = "o"; // x \ o
+import EventEmitter from "./eventEmitter.js";
 
-const winnerPositions = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
+export default class Game extends EventEmitter {
+  winningPositions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
 
-function newGame() {
-  clearCells();
-  setPlayer("o");
-  hideMessage();
-  setupEventListeners();
-}
+  currentPlayer = "o";
+  currentBoard = Array.from({ length: 9 }).fill("");
 
-function handleCellClick(e) {
-  e.target.classList.add(currentPlayer);
+  setBoardPosition(position) {
+    const currentPositionValue = this.currentBoard[position];
+    console.log(this.currentBoard, position, currentPositionValue);
 
-  if (checkWin()) {
-    return showMessage(currentPlayer);
+    if (currentPositionValue !== "") throw new Error("Position already taken");
+
+    this.currentBoard[position] = this.currentPlayer;
+
+    const payload = {
+      board: this.currentBoard,
+      player: this.currentPlayer,
+    };
+
+    this.emit("setBoard", payload);
   }
 
-  if (checkDraw()) {
-    return showMessage();
+  runRound(position) {
+    this.setBoardPosition(position);
+
+    const payload = {
+      board: this.currentBoard,
+      player: this.currentPlayer,
+    };
+
+    if (this.checkWin()) {
+      return this.emit("endGame", { ...payload, status: "win" });
+    }
+
+    if (this.checkDraw()) {
+      return this.emit("endGame", { ...payload, status: "draw" });
+    }
+
+    this.swapPlayer();
+
+    this.emit("runRound", payload);
   }
 
-  swapPlayer();
-}
+  checkWin() {
+    return this.winningPositions.some((positions) => {
+      const cellInPositions = positions.map((pos) => this.currentBoard[pos]);
 
-function checkWin() {
-  return winnerPositions.some((positions) => {
-    const cellInPositions = positions.map((pos) => cells.item(pos));
-
-    return cellInPositions.every((cell) =>
-      cell.classList.contains(currentPlayer)
-    );
-  });
-}
-function checkDraw() {
-  return [...cells].every(
-    (cell) => cell.classList.contains("o") || cell.classList.contains("x")
-  );
-}
-
-function showMessage(winner) {
-  if (!winner) {
-    messageContainer.classList.add("show");
-    message.innerHTML = "Draw";
-
-    return;
+      return cellInPositions.every((cell) => cell === this.currentPlayer);
+    });
   }
 
-  message.innerHTML = `${winner} wins`;
-  messageContainer.classList.add("show");
-}
+  checkDraw() {
+    return this.currentBoard.every((cell) => !!cell);
+  }
 
-function swapPlayer() {
-  if (currentPlayer === "x") setPlayer("o");
-  else setPlayer("x");
-}
+  resetBoard() {
+    this.currentBoard = Array.from({ length: 9 }).fill("");
 
-function setupEventListeners() {
-  restartButton.addEventListener("click", newGame);
+    const payload = {
+      board: this.currentBoard,
+      player: this.currentPlayer,
+    };
 
-  cells.forEach((cell) => {
-    cell.addEventListener("click", handleCellClick, { once: true });
-  });
-}
+    this.emit("resetBoard", payload);
+  }
 
-function hideMessage() {
-  messageContainer.classList.remove("show");
-  message.innerHTML = "";
-}
+  setPlayer(player) {
+    if (player !== "x" && player !== "o") return;
 
-function clearCells() {
-  cells.forEach((cell) => {
-    cell.classList.remove("x");
-    cell.classList.remove("o");
-  });
-}
+    this.currentPlayer = player;
 
-function setPlayer(player) {
-  if (player !== "x" && player !== "o") return;
+    const payload = {
+      board: this.currentBoard,
+      player: this.currentPlayer,
+    };
 
-  currentPlayer = player;
+    this.emit("setPlayer", payload);
+  }
 
-  if (player === "x") {
-    board.classList.remove("o");
-    board.classList.add("x");
-  } else {
-    board.classList.remove("x");
-    board.classList.add("o");
+  swapPlayer() {
+    if (this.currentPlayer === "x") this.setPlayer("o");
+    else this.setPlayer("x");
+  }
+
+  newGame() {
+    this.setPlayer("o");
+    this.resetBoard();
+
+    const payload = {
+      board: this.currentBoard,
+      player: this.currentPlayer,
+    };
+
+    this.emit("newGame", payload);
   }
 }
-
-newGame();

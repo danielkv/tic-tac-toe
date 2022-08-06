@@ -10,7 +10,7 @@ a::before {
   --board-color: black;
   --mark-x-color: rgb(197, 173, 49);
   --mark-o-color: rgb(19, 172, 67);
-  --background-color: white
+  --background-color: white;
   --mark-hover-opacity: 0.1;
 }
 
