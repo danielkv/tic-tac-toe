@@ -1,0 +1,16 @@
+{
+    "name": "tic-tac-toe",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "index.js",
+    "repository": "https://github.com/danielkv/tic-tac-toe.git",
+    "author": "Daniel K. Guolo <daniel_kv@hotmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.18.1",
+        "socket.io": "^4.5.1"
+    },
+    "scripts": {
+        "start": "node ./scripts/server.js"
+    }
+}

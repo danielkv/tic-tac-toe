@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Create game</title>
+        <style>
+            body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+            }
+            #content {
+                display: grid;
+                height: 100%;
+                justify-content: center;
+                align-content: center;
+            }
+        </style>
+        <script>
+            async function createGame() {
+                const response = await fetch("/create-game");
+                const { gameId } = await response.json();
+
+                location.href = `/${gameId}`;
+            }
+        </script>
+    </head>
+    <body>
+        <div id="content">
+            <button onclick="createGame();">Create game</button>
+        </div>
+    </body>
+</html>
